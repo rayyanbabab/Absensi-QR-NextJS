@@ -15,6 +15,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { Siswa, PresensiSiswa } from "@/lib/types";
+import ThemeToggle from "@/components/ThemeToggle";
 
 export default function CekPresensiPage() {
   const [nis, setNis] = useState("");
@@ -72,10 +73,11 @@ export default function CekPresensiPage() {
           style={{
             maxWidth: "960px",
             margin: "0 auto",
-            padding: "12px 20px",
+            padding: "10px 16px",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
+            gap: "8px",
           }}
         >
           <Link
@@ -86,44 +88,46 @@ export default function CekPresensiPage() {
               gap: "8px",
               color: "var(--text-main)",
               textDecoration: "none",
-              fontWeight: 700,
-              fontSize: "0.95rem",
+              fontWeight: 800,
+              fontSize: "0.92rem",
             }}
           >
             <div
               style={{
-                width: "28px",
-                height: "28px",
+                width: "32px",
+                height: "32px",
                 borderRadius: "var(--radius-sm)",
                 backgroundColor: "var(--color-primary)",
                 color: "#ffffff",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
+                flexShrink: 0,
               }}
             >
               <School size={16} />
             </div>
-            <span>Portal Siswa & Orang Tua</span>
+            <span>Portal Siswa</span>
           </Link>
 
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
             <Link
               href="/izin"
               className="btn btn-secondary btn-sm"
-              style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
+              style={{ display: "inline-flex", alignItems: "center", gap: "5px", padding: "5px 10px" }}
             >
               <FileEdit size={13} />
-              <span>Ajukan Izin</span>
+              <span className="hidden-mobile-flex">Ajukan Izin</span>
             </Link>
             <Link
-              href="/"
+              href="/scan"
               className="btn btn-secondary btn-sm"
-              style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
+              style={{ display: "inline-flex", alignItems: "center", gap: "5px", padding: "5px 10px" }}
             >
               <ArrowLeft size={13} />
-              <span>Terminal Scan</span>
+              <span className="hidden-mobile-flex">Scan</span>
             </Link>
+            <ThemeToggle />
           </div>
         </div>
       </header>
@@ -400,52 +404,111 @@ export default function CekPresensiPage() {
                   Belum ada rekaman presensi yang tersimpan untuk siswa ini.
                 </div>
               ) : (
-                <div className="table-container">
-                  <table className="app-table">
-                    <thead>
-                      <tr>
-                        <th style={{ width: "45px" }}>No</th>
-                        <th>Tanggal</th>
-                        <th>Jam Masuk</th>
-                        <th>Jam Pulang</th>
-                        <th>Status</th>
-                        <th>Keterangan</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {result.records.map((r, idx) => (
-                        <tr key={r.id || idx}>
-                          <td style={{ color: "var(--text-muted)", fontSize: "0.78rem" }}>{idx + 1}</td>
-                          <td style={{ fontFamily: "var(--font-mono)", fontSize: "0.82rem" }}>
-                            {r.tanggal}
-                          </td>
-                          <td style={{ fontFamily: "var(--font-mono)", color: "var(--color-success)", fontWeight: 600 }}>
-                            {r.jamMasuk || "-"}
-                          </td>
-                          <td style={{ fontFamily: "var(--font-mono)", color: "var(--color-warning)", fontWeight: 600 }}>
-                            {r.jamKeluar || "-"}
-                          </td>
-                          <td>
-                            <span
-                              className={
-                                r.idKehadiran === 1
-                                  ? "status-badge status-badge-success"
-                                  : r.idKehadiran === 4
-                                  ? "status-badge status-badge-danger"
-                                  : "status-badge status-badge-warning"
-                              }
-                            >
-                              {r.kehadiran || "Hadir"}
-                            </span>
-                          </td>
-                          <td style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
-                            {r.keterangan || "-"}
-                          </td>
+                <>
+                  {/* Desktop / Tablet Table View */}
+                  <div className="hidden-mobile-flex table-container" style={{ width: "100%", overflowX: "auto" }}>
+                    <table className="app-table">
+                      <thead>
+                        <tr>
+                          <th style={{ width: "45px" }}>No</th>
+                          <th>Tanggal</th>
+                          <th>Jam Masuk</th>
+                          <th>Jam Pulang</th>
+                          <th>Status</th>
+                          <th>Keterangan</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody>
+                        {result.records.map((r, idx) => (
+                          <tr key={r.id || idx}>
+                            <td style={{ color: "var(--text-muted)", fontSize: "0.78rem" }}>{idx + 1}</td>
+                            <td style={{ fontFamily: "var(--font-mono)", fontSize: "0.82rem" }}>
+                              {r.tanggal}
+                            </td>
+                            <td style={{ fontFamily: "var(--font-mono)", color: "var(--color-success)", fontWeight: 600 }}>
+                              {r.jamMasuk || "-"}
+                            </td>
+                            <td style={{ fontFamily: "var(--font-mono)", color: "var(--color-warning)", fontWeight: 600 }}>
+                              {r.jamKeluar || "-"}
+                            </td>
+                            <td>
+                              <span
+                                className={
+                                  r.idKehadiran === 1
+                                    ? "status-badge status-badge-success"
+                                    : r.idKehadiran === 4
+                                    ? "status-badge status-badge-danger"
+                                    : "status-badge status-badge-warning"
+                                }
+                              >
+                                {r.kehadiran || "Hadir"}
+                              </span>
+                            </td>
+                            <td style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
+                              {r.keterangan || "-"}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Mobile Stacked Card View */}
+                  <div className="mobile-only-flex" style={{ flexDirection: "column", gap: "8px", padding: "12px" }}>
+                    {result.records.map((r, idx) => (
+                      <div
+                        key={r.id || idx}
+                        style={{
+                          padding: "12px 14px",
+                          borderRadius: "var(--radius-md)",
+                          backgroundColor: "var(--bg-subtle)",
+                          border: "1px solid var(--border-app)",
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "8px",
+                        }}
+                      >
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <span style={{ fontSize: "0.85rem", fontWeight: 700, fontFamily: "var(--font-mono)" }}>
+                            {r.tanggal}
+                          </span>
+                          <span
+                            className={
+                              r.idKehadiran === 1
+                                ? "status-badge status-badge-success"
+                                : r.idKehadiran === 4
+                                ? "status-badge status-badge-danger"
+                                : "status-badge status-badge-warning"
+                            }
+                          >
+                            {r.kehadiran || "Hadir"}
+                          </span>
+                        </div>
+
+                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.78rem" }}>
+                          <div>
+                            <span style={{ color: "var(--text-muted)" }}>Masuk: </span>
+                            <strong style={{ color: "var(--color-success)", fontFamily: "var(--font-mono)" }}>
+                              {r.jamMasuk || "-"}
+                            </strong>
+                          </div>
+                          <div>
+                            <span style={{ color: "var(--text-muted)" }}>Pulang: </span>
+                            <strong style={{ color: "var(--color-warning)", fontFamily: "var(--font-mono)" }}>
+                              {r.jamKeluar || "-"}
+                            </strong>
+                          </div>
+                        </div>
+
+                        {r.keterangan && (
+                          <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", borderTop: "1px dashed var(--border-app)", paddingTop: "4px" }}>
+                            {r.keterangan}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </>
               )}
             </div>
 

@@ -16,7 +16,7 @@ import {
   UserPlus,
   Clock,
   Download,
-  Sparkles,
+  Info,
   ExternalLink,
   ChevronRight,
   AlertTriangle,
@@ -25,6 +25,7 @@ import {
   ShieldAlert,
   BarChart2,
   PieChart,
+  Camera,
 } from "lucide-react";
 import { generateSuratPeringatanPdf } from "@/lib/sp-generator";
 
@@ -182,30 +183,27 @@ export default function AdminDashboardPage() {
           </p>
         </div>
 
-        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
           <Link
-            href="/"
+            href="/scan"
             target="_blank"
             className="btn btn-secondary btn-sm"
-            style={{ fontWeight: 600 }}
           >
-            <CalendarCheck size={15} style={{ color: "var(--brand-primary)" }} />
+            <Camera size={14} />
             <span>Kamera Scanner</span>
           </Link>
           <Link
             href="/admin/siswa"
             className="btn btn-secondary btn-sm"
-            style={{ fontWeight: 600 }}
           >
-            <UserPlus size={15} />
+            <UserPlus size={14} />
             <span>Kelola Siswa</span>
           </Link>
           <Link
             href="/admin/laporan"
             className="btn btn-primary btn-sm"
-            style={{ fontWeight: 600 }}
           >
-            <FileSpreadsheet size={15} />
+            <FileSpreadsheet size={14} />
             <span>Rekap & Unduh</span>
           </Link>
         </div>
@@ -213,6 +211,7 @@ export default function AdminDashboardPage() {
 
       {/* 4 Metric Cards */}
       <div
+        className="metric-grid-mobile-2col"
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
@@ -221,7 +220,7 @@ export default function AdminDashboardPage() {
       >
         {/* Metric 1: Total Siswa */}
         <div
-          className="app-card"
+          className="app-card metric-card-compact"
           style={{
             padding: "20px",
             display: "flex",
@@ -299,7 +298,7 @@ export default function AdminDashboardPage() {
 
         {/* Metric 2: Total Guru */}
         <div
-          className="app-card"
+          className="app-card metric-card-compact"
           style={{
             padding: "20px",
             display: "flex",
@@ -377,7 +376,7 @@ export default function AdminDashboardPage() {
 
         {/* Metric 3: Rasio Kehadiran Siswa */}
         <div
-          className="app-card"
+          className="app-card metric-card-compact"
           style={{
             padding: "20px",
             display: "flex",
@@ -462,7 +461,7 @@ export default function AdminDashboardPage() {
 
         {/* Metric 4: Jam Operasional */}
         <div
-          className="app-card"
+          className="app-card metric-card-compact"
           style={{
             padding: "20px",
             display: "flex",
@@ -1150,8 +1149,9 @@ export default function AdminDashboardPage() {
                 </div>
               )}
 
-              <div style={{ fontSize: "0.76rem", color: "var(--text-muted)", backgroundColor: "var(--bg-subtle)", padding: "10px", borderRadius: "var(--radius-sm)" }}>
-                💡 Dokumen PDF yang dihasilkan telah memenuhi standar persuratan resmi dinas sekolah, lengkap dengan kop sekolah, nomor surat otomatis, tabel tanggal alfa, klausul pembinaan, dan blok tanda tangan Kepala Sekolah & Guru BK.
+              <div style={{ display: "flex", gap: "8px", alignItems: "flex-start", fontSize: "0.76rem", color: "var(--text-muted)", backgroundColor: "var(--bg-subtle)", padding: "10px", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-app)" }}>
+                <Info size={15} style={{ flexShrink: 0, marginTop: "2px", color: "var(--text-muted)" }} />
+                <span>Dokumen PDF yang dihasilkan telah memenuhi standar persuratan resmi dinas sekolah, lengkap dengan kop sekolah, nomor surat otomatis, tabel tanggal alfa, klausul pembinaan, dan blok tanda tangan Kepala Sekolah & Guru BK.</span>
               </div>
 
               <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "6px" }}>

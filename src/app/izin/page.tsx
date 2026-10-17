@@ -13,7 +13,9 @@ import {
   AlertCircle,
   Loader2,
   FileCheck,
+  X,
 } from "lucide-react";
+import ThemeToggle from "@/components/ThemeToggle";
 
 function FormPengajuanIzin() {
   const searchParams = useSearchParams();
@@ -146,10 +148,11 @@ function FormPengajuanIzin() {
           style={{
             maxWidth: "760px",
             margin: "0 auto",
-            padding: "12px 20px",
+            padding: "10px 16px",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
+            gap: "8px",
           }}
         >
           <Link
@@ -160,35 +163,39 @@ function FormPengajuanIzin() {
               gap: "8px",
               color: "var(--text-main)",
               textDecoration: "none",
-              fontWeight: 700,
-              fontSize: "0.95rem",
+              fontWeight: 800,
+              fontSize: "0.92rem",
             }}
           >
             <div
               style={{
-                width: "28px",
-                height: "28px",
+                width: "32px",
+                height: "32px",
                 borderRadius: "var(--radius-sm)",
                 backgroundColor: "var(--color-primary)",
                 color: "#ffffff",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
+                flexShrink: 0,
               }}
             >
               <School size={16} />
             </div>
-            <span>Formulir Izin / Sakit Online</span>
+            <span>Izin Online</span>
           </Link>
 
-          <Link
-            href="/cek-presensi"
-            className="btn btn-secondary btn-sm"
-            style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
-          >
-            <ArrowLeft size={13} />
-            <span>Cek Presensi</span>
-          </Link>
+          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+            <Link
+              href="/cek-presensi"
+              className="btn btn-secondary btn-sm"
+              style={{ display: "inline-flex", alignItems: "center", gap: "5px", padding: "5px 10px" }}
+            >
+              <ArrowLeft size={13} />
+              <span className="hidden-mobile-flex">Cek Presensi</span>
+            </Link>
+            <ThemeToggle />
+          </div>
         </div>
       </header>
 

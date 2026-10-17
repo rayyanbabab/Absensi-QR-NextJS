@@ -10,10 +10,9 @@ import {
   AlertCircle,
   Loader2,
   School,
-  HeartHandshake,
   CheckCircle2,
   KeyRound,
-  Sparkles,
+  Info,
 } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
 
@@ -84,7 +83,7 @@ export default function OrtuLoginPage() {
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
           <Link
-            href="/"
+            href="/scan"
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -99,7 +98,7 @@ export default function OrtuLoginPage() {
           </Link>
 
           <Link
-            href="/login"
+            href="/"
             style={{
               fontSize: "0.76rem",
               color: "var(--color-primary)",
@@ -114,21 +113,21 @@ export default function OrtuLoginPage() {
         <div style={{ textAlign: "center", marginBottom: "24px" }}>
           <div
             style={{
-              width: "52px",
-              height: "52px",
-              borderRadius: "14px",
-              background: "linear-gradient(135deg, var(--color-primary), #0284c7)",
-              color: "#ffffff",
+              width: "48px",
+              height: "48px",
+              borderRadius: "12px",
+              backgroundColor: "var(--bg-subtle)",
+              border: "1px solid var(--border-app)",
+              color: "var(--text-main)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               margin: "0 auto 14px",
-              boxShadow: "0 4px 12px rgba(14, 165, 233, 0.25)",
             }}
           >
-            <HeartHandshake size={28} />
+            <Users size={24} strokeWidth={1.8} />
           </div>
-          <h1 style={{ fontSize: "1.35rem", fontWeight: 800, color: "var(--text-main)" }}>
+          <h1 style={{ fontSize: "1.4rem", fontWeight: 700, color: "var(--text-main)", letterSpacing: "-0.02em" }}>
             Portal Wali Murid
           </h1>
           <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", marginTop: "4px" }}>
@@ -255,8 +254,8 @@ export default function OrtuLoginPage() {
             fontSize: "0.76rem",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "6px", fontWeight: 700, color: "var(--color-primary)", marginBottom: "6px" }}>
-            <Sparkles size={14} />
+          <div style={{ display: "flex", alignItems: "center", gap: "6px", fontWeight: 600, color: "var(--text-main)", marginBottom: "6px" }}>
+            <KeyRound size={14} style={{ color: "var(--text-muted)" }} />
             <span>Akun Contoh Siap Pakai (Password: 123456):</span>
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>

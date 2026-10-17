@@ -14,6 +14,7 @@ import {
   Printer,
   ShieldAlert,
   AlertTriangle,
+  Info,
 } from "lucide-react";
 import { Kelas, Siswa } from "@/lib/types";
 import { generateSuratPeringatanPdf } from "@/lib/sp-generator";
@@ -671,8 +672,9 @@ export default function LaporanPage() {
                     </div>
                   )}
 
-                  <div style={{ fontSize: "0.76rem", color: "var(--text-muted)", backgroundColor: "var(--bg-subtle)", padding: "10px", borderRadius: "var(--radius-sm)" }}>
-                    💡 Berkas PDF menyertakan kop resmi sekolah, nomor surat otomatis, tabel riwayat tanggal ketidakhadiran, klausul pemanggilan orang tua, dan blok tanda tangan Kepala Sekolah & Guru BK.
+                  <div style={{ display: "flex", gap: "8px", alignItems: "flex-start", fontSize: "0.76rem", color: "var(--text-muted)", backgroundColor: "var(--bg-subtle)", padding: "10px", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-app)" }}>
+                    <Info size={15} style={{ flexShrink: 0, marginTop: "2px", color: "var(--text-muted)" }} />
+                    <span>Berkas PDF menyertakan kop resmi sekolah, nomor surat otomatis, tabel riwayat tanggal ketidakhadiran, klausul pemanggilan orang tua, dan blok tanda tangan Kepala Sekolah & Guru BK.</span>
                   </div>
                 </>
               )}

@@ -1,594 +1,594 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import QRScanner from "@/components/QRScanner";
-import ThemeToggle from "@/components/ThemeToggle";
 import {
-  Clock,
-  Calendar,
-  LayoutDashboard,
-  CheckCircle,
+  Lock,
+  User,
+  ArrowRight,
   AlertCircle,
-  QrCode,
-  UserCheck,
+  Loader2,
   School,
-  Volume2,
-  VolumeX,
+  QrCode,
+  Camera,
+  Users,
+  UserCheck,
   FileText,
-  HeartHandshake,
+  ShieldCheck,
+  ShieldAlert,
 } from "lucide-react";
+import ThemeToggle from "@/components/ThemeToggle";
 
-export default function ScanPage() {
-  const [mode, setMode] = useState<"masuk" | "pulang">("masuk");
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [scanResult, setScanResult] = useState<{
-    success: boolean;
-    message: string;
-    type?: "siswa" | "guru";
-    entity?: any;
-    presensi?: any;
-  } | null>(null);
+function HomeLoginContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-  const [currentTime, setCurrentTime] = useState("");
-  const [currentDate, setCurrentDate] = useState("");
-  const [recentScans, setRecentScans] = useState<any[]>([]);
-  const [stats, setStats] = useState({ hadir: 0, total: 0 });
+  const redirectUrl = searchParams.get("redirect") || "/admin";
+  const errorParam = searchParams.get("error");
 
+  const [activeTab, setActiveTab] = useState<"admin" | "ortu">("admin");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+
+  // Check if user is already logged in
   useEffect(() => {
-    const updateTime = () => {
-      const now = new Date();
-      setCurrentTime(
-        now.toLocaleTimeString("id-ID", {
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-        })
-      );
-      setCurrentDate(
-        now.toLocaleDateString("id-ID", {
-          weekday: "long",
-          day: "numeric",
-          month: "long",
-          year: "numeric",
-        })
-      );
+    let isMounted = true;
+    const checkSessions = async () => {
+      try {
+        const resAdmin = await fetch("/api/auth/me");
+        const dataAdmin = await resAdmin.json();
+        if (dataAdmin?.user && isMounted) {
+          router.replace(redirectUrl);
+          return;
+        }
+
+        const resOrtu = await fetch("/api/ortu/me");
+        const dataOrtu = await resOrtu.json();
+        if (dataOrtu?.user && isMounted) {
+          if (!errorParam) {
+            router.replace("/ortu/dashboard");
+            return;
+          }
+        }
+      } catch {}
+      if (isMounted) setCheckingAuth(false);
     };
 
-    updateTime();
-    const interval = setInterval(updateTime, 1000);
-    return () => clearInterval(interval);
-  }, []);
+    checkSessions();
+    return () => {
+      isMounted = false;
+    };
+  }, [redirectUrl, router, errorParam]);
 
-  const loadRecentScans = async () => {
-    try {
-      const res = await fetch("/api/dashboard");
-      const data = await res.json();
-      if (data) {
-        const combined = [
-          ...(data.presensiSiswaHariIni || []).map((p: any) => ({
-            ...p,
-            type: "siswa",
-          })),
-          ...(data.presensiGuruHariIni || []).map((p: any) => ({
-            ...p,
-            type: "guru",
-          })),
-        ].sort((a, b) => (b.jamMasuk || "").localeCompare(a.jamMasuk || ""));
-
-        setRecentScans(combined);
-        setStats({
-          hadir: (data.siswaKehadiran?.hadir || 0) + (data.guruKehadiran?.hadir || 0),
-          total: (data.totalSiswa || 0) + (data.totalGuru || 0),
-        });
-      }
-    } catch (err) {
-      console.warn("Gagal memuat rekap presensi:", err);
-    }
-  };
-
-  useEffect(() => {
-    loadRecentScans();
-  }, []);
-
-  const [voiceEnabled, setVoiceEnabled] = useState(true);
-
-  useEffect(() => {
-    const saved = localStorage.getItem("presensi_voice_enabled");
-    if (saved !== null) {
-      setVoiceEnabled(saved === "true");
-    }
-  }, []);
-
-  const toggleVoice = () => {
-    const next = !voiceEnabled;
-    setVoiceEnabled(next);
-    localStorage.setItem("presensi_voice_enabled", String(next));
-    if (next) {
-      speakGreeting("Suara presensi diaktifkan.");
-    }
-  };
-
-  const speakGreeting = (text: string) => {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-    if (!voiceEnabled) return;
-    try {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = "id-ID";
-      utterance.rate = 1.05;
-      utterance.pitch = 1.0;
-
-      const voices = window.speechSynthesis.getVoices();
-      const idVoice = voices.find(
-        (v) => v.lang.includes("id") || v.lang.includes("ID")
-      );
-      if (idVoice) utterance.voice = idVoice;
-
-      window.speechSynthesis.speak(utterance);
-    } catch (e) {
-      console.warn("TTS error:", e);
-    }
-  };
-
-  const handleScan = async (code: string) => {
-    setIsProcessing(true);
-    setScanResult(null);
+  const handleAdminSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setIsLoading(true);
 
     try {
-      const res = await fetch("/api/scan", {
+      const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ uniqueCode: code, mode }),
+        body: JSON.stringify({ username, password }),
       });
-
       const data = await res.json();
-      setScanResult(data);
-
-      if (data.success) {
-        loadRecentScans();
-        const nama = data.entity?.namaSiswa || data.entity?.namaGuru || "";
-        const isGuru = data.type === "guru";
-
-        if (mode === "masuk") {
-          if (isGuru) {
-            speakGreeting(`Terima kasih Bapak atau Ibu ${nama}. Selamat bertugas.`);
-          } else {
-            speakGreeting(`Terima kasih ${nama}. Selamat belajar.`);
-          }
-        } else {
-          speakGreeting(`Sampai jumpa ${nama}. Hati-hati di jalan.`);
-        }
+      if (!res.ok) {
+        setError(data.error || "Login pengelola gagal.");
       } else {
-        speakGreeting(data.message || "Peringatan, presensi tidak tercatat.");
+        router.push(redirectUrl);
+        router.refresh();
       }
     } catch (err: any) {
-      setScanResult({
-        success: false,
-        message: err?.message || "Koneksi ke server gagal.",
-      });
-      speakGreeting("Koneksi ke server terganggu.");
+      setError(err?.message || "Koneksi ke server bermasalah.");
     } finally {
-      setIsProcessing(false);
+      setIsLoading(false);
     }
   };
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-      {/* Top Navbar */}
+    <div
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        backgroundColor: "var(--background)",
+        color: "var(--text-main)",
+      }}
+    >
+      {/* Top Header Navigation */}
       <header
         style={{
           borderBottom: "1px solid var(--border-app)",
           backgroundColor: "var(--bg-surface)",
+          padding: "12px 24px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
           position: "sticky",
           top: 0,
-          zIndex: 40,
-          padding: "12px 24px",
+          zIndex: 30,
         }}
       >
-        <div
-          style={{
-            maxWidth: "1320px",
-            margin: "0 auto",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          {/* Brand */}
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <div
-              style={{
-                width: "38px",
-                height: "38px",
-                borderRadius: "var(--radius-md)",
-                backgroundColor: "var(--brand-primary)",
-                color: "#ffffff",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <QrCode size={20} />
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <div
+            style={{
+              width: "36px",
+              height: "36px",
+              borderRadius: "10px",
+              backgroundColor: "var(--brand-primary)",
+              color: "#ffffff",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <QrCode size={20} />
+          </div>
+          <div>
+            <div style={{ fontWeight: 800, fontSize: "1rem", letterSpacing: "-0.01em" }}>
+              Presensi QR
             </div>
-            <div>
-              <div style={{ fontWeight: 800, fontSize: "1.1rem", color: "var(--text-main)" }}>
-                Presensi QR Sekolah
-              </div>
-              <div style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}>
-                SMK 1 Indonesia
-              </div>
+            <div style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>
+              SMK 1 Indonesia
             </div>
           </div>
+        </div>
 
-          {/* Date, Time, and Actions */}
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                fontSize: "0.82rem",
-                color: "var(--text-body)",
-                backgroundColor: "var(--bg-subtle)",
-                padding: "6px 12px",
-                borderRadius: "var(--radius-md)",
-                border: "1px solid var(--border-app)",
-              }}
-            >
-              <Calendar size={14} style={{ color: "var(--text-muted)" }} />
-              <span>{currentDate}</span>
-              <span style={{ color: "var(--border-strong)" }}>|</span>
-              <Clock size={14} style={{ color: "var(--brand-primary)" }} />
-              <strong style={{ fontFamily: "var(--font-mono)" }}>{currentTime}</strong>
-            </div>
-
-            <button
-              onClick={toggleVoice}
-              className="btn btn-secondary btn-sm"
-              title={voiceEnabled ? "Matikan Suara Sapaan" : "Aktifkan Suara Sapaan"}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "6px",
-                fontSize: "0.8rem",
-                color: voiceEnabled ? "var(--color-primary)" : "var(--text-muted)",
-              }}
-            >
-              {voiceEnabled ? <Volume2 size={15} /> : <VolumeX size={15} />}
-              <span>{voiceEnabled ? "Suara Aktif" : "Bisu"}</span>
-            </button>
-
-            <ThemeToggle />
-
-            <Link href="/cek-presensi" className="btn btn-secondary btn-sm" title="Cek Rekap Kehadiran Siswa Mandiri">
-              <UserCheck size={14} />
-              <span className="hidden-mobile">Cek Presensi</span>
-            </Link>
-
-            <Link href="/ortu/login" className="btn btn-secondary btn-sm" title="Login Khusus Wali Murid">
-              <HeartHandshake size={14} />
-              <span>Portal Wali</span>
-            </Link>
-
-            <Link href="/admin" className="btn btn-primary btn-sm">
-              <LayoutDashboard size={14} />
-              <span>Portal Admin</span>
-            </Link>
-          </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <Link
+            href="/scan"
+            className="btn btn-secondary btn-sm"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px",
+              fontSize: "0.8rem",
+              fontWeight: 600,
+            }}
+          >
+            <Camera size={15} style={{ color: "var(--brand-primary)" }} />
+            <span>Terminal Scan Kamera</span>
+          </Link>
+          <ThemeToggle />
         </div>
       </header>
 
-      {/* Main Content Layout */}
+      {/* Main Login Area */}
       <main
-        className="scanner-layout-grid"
         style={{
           flex: 1,
-          maxWidth: "1320px",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "36px 16px 48px",
+          maxWidth: "1100px",
           width: "100%",
           margin: "0 auto",
-          padding: "24px 16px",
         }}
       >
-        {/* Left Column: Jadwal & Panduan */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-          {/* Jadwal Jam Presensi */}
-          <div className="app-card" style={{ padding: "20px" }}>
-            <h2 style={{ fontSize: "0.95rem", marginBottom: "14px", color: "var(--text-main)" }}>
-              Aturan Jam Sekolah
-            </h2>
-            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+        {checkingAuth ? (
+          <div style={{ textAlign: "center", padding: "60px 20px" }}>
+            <Loader2
+              size={32}
+              className="animate-spin"
+              style={{ margin: "0 auto 16px", color: "var(--brand-primary)" }}
+            />
+            <div style={{ fontWeight: 600, fontSize: "0.95rem" }}>Memeriksa sesi login...</div>
+          </div>
+        ) : (
+          <div
+            style={{
+              width: "100%",
+              maxWidth: "460px",
+            }}
+          >
+            {/* Header Greeting */}
+            <div style={{ textAlign: "center", marginBottom: "24px" }}>
               <div
                 style={{
-                  padding: "10px 12px",
-                  borderRadius: "var(--radius-md)",
-                  backgroundColor: "var(--status-success-bg)",
-                  border: "1px solid var(--status-success-border)",
+                  width: "48px",
+                  height: "48px",
+                  borderRadius: "12px",
+                  backgroundColor: "var(--bg-subtle)",
+                  border: "1px solid var(--border-app)",
+                  color: "var(--text-main)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  margin: "0 auto 14px",
                 }}
               >
-                <div style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--status-success-text)" }}>
-                  Jam Masuk
-                </div>
-                <div style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--text-main)" }}>
-                  06:00 - 07:15
-                </div>
-                <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "2px" }}>
-                  Batas kedatangan tepat waktu
-                </div>
+                <School size={24} strokeWidth={1.8} />
               </div>
-
-              <div
-                style={{
-                  padding: "10px 12px",
-                  borderRadius: "var(--radius-md)",
-                  backgroundColor: "var(--status-warning-bg)",
-                  border: "1px solid var(--status-warning-border)",
-                }}
-              >
-                <div style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--status-warning-text)" }}>
-                  Jam Pulang
-                </div>
-                <div style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--text-main)" }}>
-                  15:00 - 17:00
-                </div>
-                <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "2px" }}>
-                  Buka scan kepulangan
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Panduan */}
-          <div className="app-card" style={{ padding: "20px" }}>
-            <h2 style={{ fontSize: "0.95rem", marginBottom: "12px", color: "var(--text-main)" }}>
-              Panduan Presensi
-            </h2>
-            <ol
-              style={{
-                paddingLeft: "18px",
-                display: "flex",
-                flexDirection: "column",
-                gap: "8px",
-                fontSize: "0.82rem",
-                color: "var(--text-body)",
-                lineHeight: 1.5,
-              }}
-            >
-              <li>Pilih tombol Masuk atau Pulang.</li>
-              <li>Arahkan kartu QR ke depan kamera.</li>
-              <li>Tunggu bunyi bip dan konfirmasi data muncul di layar.</li>
-            </ol>
-          </div>
-
-          {/* Layanan Siswa & Orang Tua */}
-          <div className="app-card" style={{ padding: "18px 20px" }}>
-            <h2 style={{ fontSize: "0.95rem", marginBottom: "6px", color: "var(--text-main)" }}>
-              Layanan Siswa & Orang Tua
-            </h2>
-            <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", marginBottom: "14px", lineHeight: 1.4 }}>
-              Cek kehadiran mandiri tanpa login atau kirim formulir izin/sakit online secara langsung.
-            </p>
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              <Link
-                href="/ortu/login"
-                className="btn btn-primary btn-sm"
-                style={{ width: "100%", justifyContent: "center" }}
-              >
-                <HeartHandshake size={14} />
-                <span>Masuk Portal Orang Tua</span>
-              </Link>
-              <Link
-                href="/cek-presensi"
-                className="btn btn-secondary btn-sm"
-                style={{ width: "100%", justifyContent: "center" }}
-              >
-                <UserCheck size={14} />
-                <span>Cek Riwayat Presensi (NIS)</span>
-              </Link>
-              <Link
-                href="/izin"
-                className="btn btn-secondary btn-sm"
-                style={{ width: "100%", justifyContent: "center" }}
-              >
-                <FileText size={14} />
-                <span>Pengajuan Izin / Sakit Online</span>
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        {/* Center Column: Scanner Station (Prioritized on Mobile) */}
-        <div className="scanner-station-col" style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
-          <div className="app-card" style={{ padding: "24px" }}>
-            <div style={{ textAlign: "center", marginBottom: "18px" }}>
-              <h2 style={{ fontSize: "1.25rem", fontWeight: 800 }}>Kamera Pemindai QR</h2>
-              <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", marginTop: "4px" }}>
-                Dekatkan kartu presensi siswa atau guru ke area kamera
+              <h1 style={{ fontSize: "1.4rem", fontWeight: 700, letterSpacing: "-0.02em" }}>
+                Portal Masuk Sistem
+              </h1>
+              <p style={{ fontSize: "0.84rem", color: "var(--text-muted)", marginTop: "4px" }}>
+                Silakan autentikasi untuk mengakses fitur presensi dan data sekolah
               </p>
             </div>
 
-            {/* QR Scanner Component */}
-            <QRScanner
-              onScanSuccess={handleScan}
-              mode={mode}
-              setMode={setMode}
-              isProcessing={isProcessing}
-            />
-
-            {/* Result Confirmation Box */}
-            {scanResult && (
+            {/* Warning if Orang Tua was restricted from admin */}
+            {errorParam === "ortu_restricted" && (
               <div
                 style={{
-                  marginTop: "20px",
-                  padding: "16px",
+                  padding: "14px 16px",
+                  background: "var(--status-danger-bg)",
+                  border: "1px solid var(--status-danger-border)",
                   borderRadius: "var(--radius-md)",
-                  backgroundColor: scanResult.success
-                    ? "var(--status-success-bg)"
-                    : "var(--status-danger-bg)",
-                  border: `1px solid ${
-                    scanResult.success
-                      ? "var(--status-success-border)"
-                      : "var(--status-danger-border)"
-                  }`,
+                  marginBottom: "20px",
                 }}
               >
-                <div style={{ display: "flex", alignItems: "flex-start", gap: "10px" }}>
-                  {scanResult.success ? (
-                    <CheckCircle
-                      size={22}
-                      style={{ color: "var(--status-success-text)", flexShrink: 0, marginTop: "2px" }}
-                    />
-                  ) : (
-                    <AlertCircle
-                      size={22}
-                      style={{ color: "var(--status-danger-text)", flexShrink: 0, marginTop: "2px" }}
-                    />
-                  )}
-                  <div style={{ flex: 1 }}>
-                    <div
-                      style={{
-                        fontSize: "0.92rem",
-                        fontWeight: 700,
-                        color: scanResult.success
-                          ? "var(--status-success-text)"
-                          : "var(--status-danger-text)",
-                      }}
-                    >
-                      {scanResult.message}
+                <div style={{ display: "flex", gap: "10px", alignItems: "flex-start" }}>
+                  <ShieldAlert size={18} style={{ color: "var(--status-danger-text)", flexShrink: 0, marginTop: "2px" }} />
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: "0.85rem", color: "var(--status-danger-text)" }}>
+                      Akses Dibatasi untuk Akun Wali Murid
                     </div>
-
-                    {scanResult.entity && (
-                      <div
-                        style={{
-                          marginTop: "8px",
-                          padding: "8px 12px",
-                          backgroundColor: "var(--bg-surface)",
-                          borderRadius: "var(--radius-sm)",
-                          border: "1px solid var(--border-app)",
-                          fontSize: "0.82rem",
-                          display: "flex",
-                          justifyContent: "space-between",
-                        }}
+                    <div style={{ fontSize: "0.8rem", color: "var(--text-body)", marginTop: "3px", lineHeight: 1.45 }}>
+                      Anda terdeteksi masuk sebagai <strong>Wali Murid / Orang Tua</strong>. Panel administrasi dan kelola data hanya diizinkan untuk Guru & Petugas Sekolah.
+                    </div>
+                    <div style={{ marginTop: "10px" }}>
+                      <Link
+                        href="/ortu/dashboard"
+                        className="btn btn-secondary btn-sm"
+                        style={{ fontSize: "0.78rem" }}
                       >
-                        <div>
-                          <strong>
-                            {scanResult.entity.namaSiswa || scanResult.entity.namaGuru}
-                          </strong>
-                          <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
-                            {scanResult.entity.nis
-                              ? `NIS: ${scanResult.entity.nis}`
-                              : `NUPTK: ${scanResult.entity.nuptk}`}
-                          </div>
-                        </div>
-                        <div style={{ textAlign: "right" }}>
-                          <span className="status-badge status-badge-info">
-                            {scanResult.entity.kelas || "Guru"}
-                          </span>
-                        </div>
-                      </div>
-                    )}
+                        <Users size={14} />
+                        Buka Dashboard Orang Tua
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </div>
             )}
-          </div>
-        </div>
 
-        {/* Right Column: Aktivitas Hari Ini */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-          {/* Stat Box */}
-          <div
-            className="app-card"
-            style={{
-              padding: "16px",
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              textAlign: "center",
-              gap: "8px",
-            }}
-          >
-            <div>
-              <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>Hadir Hari Ini</div>
-              <div style={{ fontSize: "1.6rem", fontWeight: 800, color: "var(--brand-primary)" }}>
-                {stats.hadir}
-              </div>
-            </div>
-            <div style={{ borderLeft: "1px solid var(--border-app)" }}>
-              <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>Total Warga</div>
-              <div style={{ fontSize: "1.6rem", fontWeight: 800, color: "var(--text-main)" }}>
-                {stats.total}
-              </div>
-            </div>
-          </div>
-
-          {/* Recent Scans Feed */}
-          <div className="app-card" style={{ padding: "18px" }}>
+            {/* Login Card */}
             <div
+              className="app-card"
               style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                marginBottom: "12px",
+                padding: "28px 24px",
+                boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.03)",
               }}
             >
-              <h2 style={{ fontSize: "0.95rem", color: "var(--text-main)" }}>
-                Presensi Terakhir
-              </h2>
-              <span className="status-badge status-badge-neutral">{recentScans.length}</span>
+              {/* Role Toggle Switcher */}
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: "4px",
+                  padding: "4px",
+                  borderRadius: "var(--radius-md)",
+                  backgroundColor: "var(--bg-subtle)",
+                  marginBottom: "22px",
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab("admin");
+                    setError(null);
+                  }}
+                  style={{
+                    padding: "8px 12px",
+                    borderRadius: "var(--radius-sm)",
+                    backgroundColor: activeTab === "admin" ? "var(--bg-surface)" : "transparent",
+                    color: activeTab === "admin" ? "var(--brand-primary)" : "var(--text-muted)",
+                    fontWeight: activeTab === "admin" ? 700 : 500,
+                    fontSize: "0.82rem",
+                    border: "none",
+                    cursor: "pointer",
+                    boxShadow: activeTab === "admin" ? "0 1px 3px rgba(0, 0, 0, 0.08)" : "none",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "6px",
+                    transition: "all 0.15s ease",
+                  }}
+                >
+                  <ShieldCheck size={15} />
+                  <span>Admin / Petugas</span>
+                </button>
+
+                <Link
+                  href="/ortu/login"
+                  style={{
+                    padding: "8px 12px",
+                    borderRadius: "var(--radius-sm)",
+                    backgroundColor: "transparent",
+                    color: "var(--text-muted)",
+                    fontWeight: 500,
+                    fontSize: "0.82rem",
+                    textDecoration: "none",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "6px",
+                    transition: "all 0.15s ease",
+                  }}
+                >
+                  <Users size={15} />
+                  <span>Portal Wali &rarr;</span>
+                </Link>
+              </div>
+
+              {/* Admin Login Form */}
+              {error && (
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    padding: "10px 14px",
+                    background: "rgba(239, 68, 68, 0.1)",
+                    border: "1px solid rgba(239, 68, 68, 0.25)",
+                    borderRadius: "var(--radius-sm)",
+                    color: "var(--color-danger)",
+                    fontSize: "0.82rem",
+                    marginBottom: "16px",
+                  }}
+                >
+                  <AlertCircle size={16} style={{ flexShrink: 0 }} />
+                  <span>{error}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleAdminSubmit} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+                <div className="form-group">
+                  <label className="form-label">Username atau Email</label>
+                  <div style={{ position: "relative" }}>
+                    <input
+                      type="text"
+                      required
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      placeholder="superadmin"
+                      className="form-input"
+                      style={{ paddingLeft: "34px", fontSize: "0.85rem" }}
+                    />
+                    <User
+                      size={15}
+                      style={{
+                        position: "absolute",
+                        left: "11px",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        color: "var(--text-muted)",
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Kata Sandi</label>
+                  <div style={{ position: "relative" }}>
+                    <input
+                      type="password"
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="form-input"
+                      style={{ paddingLeft: "34px", fontSize: "0.85rem" }}
+                    />
+                    <Lock
+                      size={15}
+                      style={{
+                        position: "absolute",
+                        left: "11px",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        color: "var(--text-muted)",
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={isLoading}
+                  style={{ width: "100%", padding: "10px", marginTop: "6px", justifyContent: "center" }}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" />
+                      <span>Memvalidasi...</span>
+                    </>
+                  ) : (
+                    "Masuk ke Panel Admin"
+                  )}
+                </button>
+              </form>
+
+              {/* Default Credentials Hint */}
+              <div
+                style={{
+                  marginTop: "20px",
+                  padding: "10px 12px",
+                  background: "var(--bg-sunken)",
+                  borderRadius: "var(--radius-sm)",
+                  border: "1px solid var(--border-app)",
+                  fontSize: "0.75rem",
+                  color: "var(--text-muted)",
+                  textAlign: "center",
+                }}
+              >
+                <div>Akun pengelola bawaan:</div>
+                <div style={{ color: "var(--text-main)", fontWeight: 600, marginTop: "2px" }}>
+                  Username: <code style={{ fontFamily: "var(--font-mono)" }}>superadmin</code> &bull; Password: <code style={{ fontFamily: "var(--font-mono)" }}>superadmin</code>
+                </div>
+              </div>
             </div>
 
-            {recentScans.length === 0 ? (
-              <div
+            {/* Quick Service Links Grid */}
+            <div
+              style={{
+                marginTop: "24px",
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: "10px",
+              }}
+            >
+              <Link
+                href="/scan"
+                className="app-card"
                 style={{
-                  textAlign: "center",
-                  padding: "36px 8px",
-                  fontSize: "0.82rem",
-                  color: "var(--text-muted)",
-                }}
-              >
-                Belum ada data scan presensi hari ini.
-              </div>
-            ) : (
-              <div
-                style={{
+                  padding: "12px 14px",
+                  textDecoration: "none",
                   display: "flex",
-                  flexDirection: "column",
-                  gap: "8px",
-                  maxHeight: "440px",
-                  overflowY: "auto",
+                  alignItems: "center",
+                  gap: "10px",
+                  transition: "border-color 0.15s ease",
                 }}
               >
-                {recentScans.map((item, idx) => (
-                  <div
-                    key={idx}
-                    style={{
-                      padding: "8px 10px",
-                      backgroundColor: "var(--bg-subtle)",
-                      borderRadius: "var(--radius-sm)",
-                      border: "1px solid var(--border-app)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      fontSize: "0.82rem",
-                    }}
-                  >
-                    <div>
-                      <div style={{ fontWeight: 600, color: "var(--text-main)" }}>
-                        {item.namaSiswa || item.namaGuru}
-                      </div>
-                      <div style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>
-                        {item.kelas || item.nuptk || "Guru"}
-                      </div>
-                    </div>
-                    <span className="status-badge status-badge-success" style={{ fontFamily: "var(--font-mono)" }}>
-                      {item.jamMasuk || "Hadir"}
-                    </span>
+                <div
+                  style={{
+                    width: "36px",
+                    height: "36px",
+                    borderRadius: "var(--radius-sm)",
+                    backgroundColor: "var(--bg-subtle)",
+                    border: "1px solid var(--border-app)",
+                    color: "var(--text-main)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                  }}
+                >
+                  <Camera size={17} strokeWidth={1.8} />
+                </div>
+                <div>
+                  <div style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--text-main)" }}>
+                    Terminal Scan
                   </div>
-                ))}
-              </div>
-            )}
+                  <div style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>
+                    Kamera QR presensi
+                  </div>
+                </div>
+              </Link>
+
+              <Link
+                href="/ortu/login"
+                className="app-card"
+                style={{
+                  padding: "12px 14px",
+                  textDecoration: "none",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  transition: "border-color 0.15s ease",
+                }}
+              >
+                <div
+                  style={{
+                    width: "36px",
+                    height: "36px",
+                    borderRadius: "var(--radius-sm)",
+                    backgroundColor: "var(--bg-subtle)",
+                    border: "1px solid var(--border-app)",
+                    color: "var(--text-main)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                  }}
+                >
+                  <Users size={17} strokeWidth={1.8} />
+                </div>
+                <div>
+                  <div style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--text-main)" }}>
+                    Portal Wali
+                  </div>
+                  <div style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>
+                    Login orang tua
+                  </div>
+                </div>
+              </Link>
+
+              <Link
+                href="/cek-presensi"
+                className="app-card"
+                style={{
+                  padding: "12px 14px",
+                  textDecoration: "none",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  transition: "border-color 0.15s ease",
+                }}
+              >
+                <div
+                  style={{
+                    width: "36px",
+                    height: "36px",
+                    borderRadius: "var(--radius-sm)",
+                    backgroundColor: "var(--bg-subtle)",
+                    border: "1px solid var(--border-app)",
+                    color: "var(--text-main)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                  }}
+                >
+                  <UserCheck size={17} strokeWidth={1.8} />
+                </div>
+                <div>
+                  <div style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--text-main)" }}>
+                    Cek Presensi
+                  </div>
+                  <div style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>
+                    Cari via NIS siswa
+                  </div>
+                </div>
+              </Link>
+
+              <Link
+                href="/izin"
+                className="app-card"
+                style={{
+                  padding: "12px 14px",
+                  textDecoration: "none",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  transition: "border-color 0.15s ease",
+                }}
+              >
+                <div
+                  style={{
+                    width: "36px",
+                    height: "36px",
+                    borderRadius: "var(--radius-sm)",
+                    backgroundColor: "var(--bg-subtle)",
+                    border: "1px solid var(--border-app)",
+                    color: "var(--text-main)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                  }}
+                >
+                  <FileText size={17} strokeWidth={1.8} />
+                </div>
+                <div>
+                  <div style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--text-main)" }}>
+                    Pengajuan Izin
+                  </div>
+                  <div style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>
+                    Formulir izin / sakit
+                  </div>
+                </div>
+              </Link>
+            </div>
           </div>
-        </div>
+        )}
       </main>
 
       {/* Footer */}
@@ -597,13 +597,27 @@ export default function ScanPage() {
           borderTop: "1px solid var(--border-app)",
           padding: "16px 24px",
           textAlign: "center",
-          fontSize: "0.8rem",
+          fontSize: "0.78rem",
           color: "var(--text-muted)",
           backgroundColor: "var(--bg-surface)",
         }}
       >
-        Hak Cipta &copy; 2025 SMK 1 Indonesia. Sistem Presensi Siswa dan Guru.
+        Hak Cipta &copy; 2025 SMK 1 Indonesia. Sistem Presensi Siswa dan Guru Terintegrasi.
       </footer>
     </div>
+  );
+}
+
+export default function HomePage() {
+  return (
+    <Suspense
+      fallback={
+        <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <Loader2 size={32} className="animate-spin" style={{ color: "var(--brand-primary)" }} />
+        </div>
+      }
+    >
+      <HomeLoginContent />
+    </Suspense>
   );
 }

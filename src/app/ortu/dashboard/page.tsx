@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  HeartHandshake,
   LogOut,
   Calendar,
   Clock,
@@ -269,16 +268,16 @@ export default function OrtuDashboardPage() {
               style={{
                 width: "36px",
                 height: "36px",
-                borderRadius: "10px",
-                background: "linear-gradient(135deg, var(--color-primary), #0284c7)",
+                borderRadius: "var(--radius-sm)",
+                backgroundColor: "var(--bg-subtle)",
+                border: "1px solid var(--border-app)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                color: "#ffffff",
-                boxShadow: "0 2px 8px rgba(14, 165, 233, 0.25)",
+                color: "var(--text-main)",
               }}
             >
-              <HeartHandshake size={20} />
+              <Users size={18} strokeWidth={1.8} />
             </div>
             <div>
               <div style={{ fontSize: "0.95rem", fontWeight: 800, lineHeight: 1.2 }}>
@@ -503,6 +502,7 @@ export default function OrtuDashboardPage() {
 
         {/* 4 Metric Summary Cards + Ratio Indicator */}
         <div
+          className="metric-grid-mobile-2col"
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
@@ -511,7 +511,7 @@ export default function OrtuDashboardPage() {
           }}
         >
           {/* Ratio Card */}
-          <div className="app-card" style={{ padding: "16px 18px", borderTop: "3px solid var(--color-success)" }}>
+          <div className="app-card metric-card-compact" style={{ padding: "16px 18px", borderTop: "3px solid var(--color-success)" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <span style={{ fontSize: "0.76rem", fontWeight: 600, color: "var(--text-muted)" }}>Rasio Presensi</span>
               <TrendingUp size={16} style={{ color: "var(--color-success)" }} />
@@ -525,7 +525,7 @@ export default function OrtuDashboardPage() {
           </div>
 
           {/* Hadir */}
-          <div className="app-card" style={{ padding: "16px 18px", borderTop: "3px solid var(--color-success)" }}>
+          <div className="app-card metric-card-compact" style={{ padding: "16px 18px", borderTop: "3px solid var(--color-success)" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <span style={{ fontSize: "0.76rem", fontWeight: 600, color: "var(--text-muted)" }}>Hadir</span>
               <span style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: "var(--color-success)" }} />
@@ -539,7 +539,7 @@ export default function OrtuDashboardPage() {
           </div>
 
           {/* Sakit */}
-          <div className="app-card" style={{ padding: "16px 18px", borderTop: "3px solid #f59e0b" }}>
+          <div className="app-card metric-card-compact" style={{ padding: "16px 18px", borderTop: "3px solid #f59e0b" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <span style={{ fontSize: "0.76rem", fontWeight: 600, color: "var(--text-muted)" }}>Sakit</span>
               <span style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: "#f59e0b" }} />
@@ -553,7 +553,7 @@ export default function OrtuDashboardPage() {
           </div>
 
           {/* Izin */}
-          <div className="app-card" style={{ padding: "16px 18px", borderTop: "3px solid var(--color-primary)" }}>
+          <div className="app-card metric-card-compact" style={{ padding: "16px 18px", borderTop: "3px solid var(--color-primary)" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <span style={{ fontSize: "0.76rem", fontWeight: 600, color: "var(--text-muted)" }}>Izin</span>
               <span style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: "var(--color-primary)" }} />
@@ -567,7 +567,7 @@ export default function OrtuDashboardPage() {
           </div>
 
           {/* Alfa */}
-          <div className="app-card" style={{ padding: "16px 18px", borderTop: "3px solid var(--color-danger)" }}>
+          <div className="app-card metric-card-compact" style={{ padding: "16px 18px", borderTop: "3px solid var(--color-danger)" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <span style={{ fontSize: "0.76rem", fontWeight: 600, color: "var(--text-muted)" }}>Alfa</span>
               <span style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: "var(--color-danger)" }} />
@@ -668,48 +668,109 @@ export default function OrtuDashboardPage() {
                 <p style={{ fontSize: "0.88rem" }}>Belum ada rekaman presensi untuk siswa ini.</p>
               </div>
             ) : (
-              <div className="table-responsive">
-                <table className="app-table">
-                  <thead>
-                    <tr>
-                      <th>Tanggal</th>
-                      <th>Status Kehadiran</th>
-                      <th>Jam Masuk</th>
-                      <th>Jam Pulang</th>
-                      <th>Keterangan</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {records.map((rec) => (
-                      <tr key={rec.id}>
-                        <td style={{ fontFamily: "var(--font-mono)", fontWeight: 600 }}>
-                          {rec.tanggal}
-                        </td>
-                        <td>
-                          <span
-                            className={`badge ${
-                              rec.idKehadiran === 1
-                                ? "badge-success"
-                                : rec.idKehadiran === 2
-                                ? "badge-warning"
-                                : rec.idKehadiran === 3
-                                ? "badge-info"
-                                : "badge-danger"
-                            }`}
-                          >
-                            {rec.kehadiran}
-                          </span>
-                        </td>
-                        <td style={{ fontFamily: "var(--font-mono)" }}>{rec.jamMasuk || "-"}</td>
-                        <td style={{ fontFamily: "var(--font-mono)" }}>{rec.jamKeluar || "-"}</td>
-                        <td style={{ fontSize: "0.82rem", color: "var(--text-muted)" }}>
-                          {rec.keterangan || "-"}
-                        </td>
+              <>
+                {/* Desktop / Tablet Table View */}
+                <div className="hidden-mobile-flex table-container" style={{ width: "100%", overflowX: "auto" }}>
+                  <table className="app-table">
+                    <thead>
+                      <tr>
+                        <th>Tanggal</th>
+                        <th>Status Kehadiran</th>
+                        <th>Jam Masuk</th>
+                        <th>Jam Pulang</th>
+                        <th>Keterangan</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {records.map((rec) => (
+                        <tr key={rec.id}>
+                          <td style={{ fontFamily: "var(--font-mono)", fontWeight: 600 }}>
+                            {rec.tanggal}
+                          </td>
+                          <td>
+                            <span
+                              className={`badge ${
+                                rec.idKehadiran === 1
+                                  ? "badge-success"
+                                  : rec.idKehadiran === 2
+                                  ? "badge-warning"
+                                  : rec.idKehadiran === 3
+                                  ? "badge-info"
+                                  : "badge-danger"
+                              }`}
+                            >
+                              {rec.kehadiran}
+                            </span>
+                          </td>
+                          <td style={{ fontFamily: "var(--font-mono)" }}>{rec.jamMasuk || "-"}</td>
+                          <td style={{ fontFamily: "var(--font-mono)" }}>{rec.jamKeluar || "-"}</td>
+                          <td style={{ fontSize: "0.82rem", color: "var(--text-muted)" }}>
+                            {rec.keterangan || "-"}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Mobile Card List View */}
+                <div className="mobile-only-flex" style={{ flexDirection: "column", gap: "8px" }}>
+                  {records.map((rec) => (
+                    <div
+                      key={rec.id}
+                      style={{
+                        padding: "12px 14px",
+                        borderRadius: "var(--radius-md)",
+                        backgroundColor: "var(--bg-subtle)",
+                        border: "1px solid var(--border-app)",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "8px",
+                      }}
+                    >
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span style={{ fontSize: "0.85rem", fontWeight: 700, fontFamily: "var(--font-mono)" }}>
+                          {rec.tanggal}
+                        </span>
+                        <span
+                          className={`badge ${
+                            rec.idKehadiran === 1
+                              ? "badge-success"
+                              : rec.idKehadiran === 2
+                              ? "badge-warning"
+                              : rec.idKehadiran === 3
+                              ? "badge-info"
+                              : "badge-danger"
+                          }`}
+                        >
+                          {rec.kehadiran}
+                        </span>
+                      </div>
+
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.78rem" }}>
+                        <div>
+                          <span style={{ color: "var(--text-muted)" }}>Masuk: </span>
+                          <strong style={{ color: "var(--color-success)", fontFamily: "var(--font-mono)" }}>
+                            {rec.jamMasuk || "-"}
+                          </strong>
+                        </div>
+                        <div>
+                          <span style={{ color: "var(--text-muted)" }}>Pulang: </span>
+                          <strong style={{ color: "var(--color-warning)", fontFamily: "var(--font-mono)" }}>
+                            {rec.jamKeluar || "-"}
+                          </strong>
+                        </div>
+                      </div>
+
+                      {rec.keterangan && (
+                        <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", borderTop: "1px dashed var(--border-app)", paddingTop: "4px" }}>
+                          {rec.keterangan}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </>
             )}
           </div>
         )}

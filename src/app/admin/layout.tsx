@@ -22,7 +22,6 @@ import {
   X,
   FileCheck,
   MessageSquare,
-  HeartHandshake,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -64,7 +63,7 @@ const navGroups: NavGroup[] = [
     category: "Sistem & Notifikasi",
     items: [
       { label: "Broadcast WhatsApp", href: "/admin/broadcast", icon: MessageSquare },
-      { label: "Akun Orang Tua", href: "/admin/orang-tua", icon: HeartHandshake },
+      { label: "Akun Orang Tua", href: "/admin/orang-tua", icon: Users },
       { label: "Data Petugas", href: "/admin/petugas", icon: ShieldCheck },
       { label: "Pengaturan Sistem", href: "/admin/settings", icon: Settings },
     ],
@@ -80,11 +79,42 @@ export default function AdminLayout({
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentDateTime, setCurrentDateTime] = useState("");
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [authLoading, setAuthLoading] = useState(true);
 
   // Close mobile drawer on route change
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [pathname]);
+
+  // Auth Guard: Verify session
+  useEffect(() => {
+    let isMounted = true;
+    const checkAuth = async () => {
+      try {
+        const res = await fetch("/api/auth/me");
+        if (!res.ok) {
+          router.replace("/login");
+          return;
+        }
+        const data = await res.json();
+        if (!data.user) {
+          router.replace("/login");
+          return;
+        }
+        if (isMounted) {
+          setCurrentUser(data.user);
+          setAuthLoading(false);
+        }
+      } catch {
+        router.replace("/login");
+      }
+    };
+    checkAuth();
+    return () => {
+      isMounted = false;
+    };
+  }, [router]);
 
   useEffect(() => {
     const updateTime = () => {
@@ -111,7 +141,8 @@ export default function AdminLayout({
     try {
       await fetch("/api/auth/logout", { method: "POST" });
     } catch {}
-    router.push("/login");
+    router.replace("/");
+    router.refresh();
   };
 
   // Determine current page title
@@ -123,6 +154,46 @@ export default function AdminLayout({
     }
     return "Portal Administrasi";
   };
+
+  if (authLoading) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "16px",
+          background: "var(--background)",
+        }}
+      >
+        <div
+          style={{
+            width: "48px",
+            height: "48px",
+            borderRadius: "12px",
+            backgroundColor: "var(--bg-subtle)",
+            border: "1px solid var(--border-app)",
+            color: "var(--text-main)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <QrCode size={22} strokeWidth={1.8} />
+        </div>
+        <div style={{ textAlign: "center" }}>
+          <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "var(--text-main)" }}>
+            Memverifikasi Hak Akses...
+          </div>
+          <div style={{ fontSize: "0.78rem", color: "var(--text-muted)", marginTop: "4px" }}>
+            Presensi QR &bull; SMK 1 Indonesia
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="admin-layout-shell">
@@ -214,7 +285,7 @@ export default function AdminLayout({
         {/* Quick Launch to Scanner Terminal */}
         <div style={{ padding: "14px 14px 8px 14px", flexShrink: 0 }}>
           <Link
-            href="/"
+            href="/scan"
             target="_blank"
             className="btn btn-secondary"
             style={{
@@ -334,7 +405,7 @@ export default function AdminLayout({
                 flexShrink: 0,
               }}
             >
-              SA
+              {(currentUser?.username || "AD").slice(0, 2).toUpperCase()}
             </div>
             <div style={{ minWidth: 0, overflow: "hidden" }}>
               <div
@@ -347,7 +418,7 @@ export default function AdminLayout({
                   textOverflow: "ellipsis",
                 }}
               >
-                Administrator
+                {currentUser?.namaPetugas || currentUser?.username || "Administrator"}
               </div>
               <div
                 style={{
@@ -356,7 +427,7 @@ export default function AdminLayout({
                   whiteSpace: "nowrap",
                 }}
               >
-                Superadmin Sekolah
+                {currentUser?.isSuperadmin ? "Superadmin Sekolah" : "Petugas Piket"}
               </div>
             </div>
           </div>
@@ -420,26 +491,17 @@ export default function AdminLayout({
             >
               {getCurrentPageTitle()}
             </div>
-            <span style={{ color: "var(--border-strong)", fontSize: "0.85rem" }}>/</span>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "5px",
-                fontSize: "0.78rem",
-                color: "var(--text-muted)",
-                whiteSpace: "nowrap",
-              }}
-            >
-              <School size={13} />
-              <span>SMK 1</span>
-            </div>
+            <span style={{ color: "var(--border-strong)", fontSize: "0.82rem" }}>/</span>
+            <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", fontWeight: 500 }}>
+              SMK 1 Indonesia
+            </span>
           </div>
 
           {/* Right Header: Clock, Status, ThemeToggle */}
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             {currentDateTime && (
               <div
+                className="hidden-mobile-flex"
                 style={{
                   fontSize: "0.78rem",
                   color: "var(--text-body)",
@@ -471,7 +533,7 @@ export default function AdminLayout({
               }}
             >
               <CheckCircle2 size={12} />
-              <span>Siap</span>
+              <span className="hidden-mobile-flex">Siap</span>
             </div>
 
             <ThemeToggle />
@@ -483,6 +545,61 @@ export default function AdminLayout({
           <div style={{ maxWidth: "1280px", margin: "0 auto" }}>{children}</div>
         </main>
       </div>
+
+      {/* Handheld Mobile Bottom Navigation Bar */}
+      <nav className="admin-mobile-bottom-nav">
+        <Link
+          href="/admin"
+          className={`admin-mobile-nav-item ${pathname === "/admin" ? "active" : ""}`}
+        >
+          <div className="admin-mobile-nav-icon-wrapper">
+            <LayoutDashboard size={19} />
+          </div>
+          <span>Dashboard</span>
+        </Link>
+
+        <Link
+          href="/admin/siswa"
+          className={`admin-mobile-nav-item ${pathname.startsWith("/admin/siswa") ? "active" : ""}`}
+        >
+          <div className="admin-mobile-nav-icon-wrapper">
+            <GraduationCap size={19} />
+          </div>
+          <span>Siswa</span>
+        </Link>
+
+        <Link
+          href="/admin/absen-siswa"
+          className={`admin-mobile-nav-item ${pathname.startsWith("/admin/absen-siswa") ? "active" : ""}`}
+        >
+          <div className="admin-mobile-nav-icon-wrapper">
+            <CalendarCheck size={19} />
+          </div>
+          <span>Presensi</span>
+        </Link>
+
+        <Link
+          href="/admin/izin"
+          className={`admin-mobile-nav-item ${pathname.startsWith("/admin/izin") ? "active" : ""}`}
+        >
+          <div className="admin-mobile-nav-icon-wrapper">
+            <FileCheck size={19} />
+          </div>
+          <span>Izin</span>
+        </Link>
+
+        <button
+          type="button"
+          onClick={() => setMobileMenuOpen(true)}
+          className="admin-mobile-nav-item"
+          style={{ background: "none", border: "none", cursor: "pointer" }}
+        >
+          <div className="admin-mobile-nav-icon-wrapper">
+            <Menu size={19} />
+          </div>
+          <span>Menu</span>
+        </button>
+      </nav>
     </div>
   );
 }

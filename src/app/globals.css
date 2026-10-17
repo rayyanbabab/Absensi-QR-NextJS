@@ -60,9 +60,9 @@
   --radius-lg: 14px;
   --radius-full: 9999px;
   
-  --shadow-card: 0 1px 3px 0 rgba(15, 23, 42, 0.04), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
-  --shadow-elevated: 0 4px 6px -1px rgba(15, 23, 42, 0.05), 0 2px 4px -2px rgba(15, 23, 42, 0.05);
-  --shadow-modal: 0 20px 25px -5px rgba(15, 23, 42, 0.1), 0 8px 10px -6px rgba(15, 23, 42, 0.05);
+  --shadow-card: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
+  --shadow-elevated: 0 4px 8px -1px rgba(15, 23, 42, 0.05);
+  --shadow-modal: 0 16px 24px -4px rgba(15, 23, 42, 0.08);
 
   /* Shadcn mappings */
   --background: #f8fafc;
@@ -637,6 +637,25 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
+/* Responsive Header Visibility */
+.hidden-mobile-flex {
+  display: flex !important;
+}
+
+.mobile-only-flex {
+  display: none !important;
+}
+
+@media (max-width: 820px) {
+  .hidden-mobile-flex {
+    display: none !important;
+  }
+
+  .mobile-only-flex {
+    display: flex !important;
+  }
+}
+
 /* Scanner Layout Reflow */
 .scanner-layout-grid {
   display: grid;
@@ -728,6 +747,15 @@ h1, h2, h3, h4, h5, h6 {
     width: 100% !important;
   }
 
+  .table-toolbar-filters > div {
+    width: 100% !important;
+  }
+
+  .table-toolbar-filters input[type="date"] {
+    width: 100% !important;
+    min-width: 100% !important;
+  }
+
   .table-toolbar-select-group {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -742,5 +770,189 @@ h1, h2, h3, h4, h5, h6 {
     align-items: center;
   }
 }
+
+/* =========================================================
+   Modern QR Scanner Laser & Viewfinder Accents
+   ========================================================= */
+
+@keyframes scannerLaser {
+  0% {
+    top: 10%;
+    opacity: 0.6;
+  }
+  50% {
+    top: 88%;
+    opacity: 1;
+  }
+  100% {
+    top: 10%;
+    opacity: 0.6;
+  }
+}
+
+.scanner-laser-beam {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  height: 2px;
+  background: #2563eb;
+  opacity: 0.85;
+  border-radius: 2px;
+  box-shadow: 0 0 6px rgba(37, 99, 235, 0.4);
+  pointer-events: none;
+  z-index: 8;
+  animation: scannerLaser 2.6s ease-in-out infinite;
+}
+
+/* =========================================================
+   Admin Mobile Bottom Navigation Bar (App-Native Feel)
+   ========================================================= */
+
+.admin-mobile-bottom-nav {
+  display: none;
+}
+
+@media (max-width: 1023px) {
+  .admin-mobile-bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 62px;
+    background-color: var(--bg-surface);
+    border-top: 1px solid var(--border-app);
+    z-index: 45;
+    align-items: center;
+    justify-content: space-around;
+    padding: 0 6px;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    backdrop-filter: blur(16px);
+    box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.06);
+  }
+
+  .admin-mobile-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 5px 4px;
+    color: var(--text-muted);
+    font-size: 0.67rem;
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    transition: all 0.15s ease;
+    text-decoration: none;
+    flex: 1;
+    max-width: 68px;
+    user-select: none;
+  }
+
+  .admin-mobile-nav-item:active {
+    transform: scale(0.92);
+  }
+
+  .admin-mobile-nav-item.active {
+    color: var(--brand-primary);
+    font-weight: 700;
+  }
+
+  .admin-mobile-nav-icon-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    transition: all 0.15s ease;
+  }
+
+  .admin-mobile-nav-item.active .admin-mobile-nav-icon-wrapper {
+    background-color: var(--bg-subtle);
+    color: var(--brand-primary);
+  }
+
+  /* Give space at bottom of content so floating bottom bar never obstructs buttons/tables */
+  .admin-main-content {
+    padding-bottom: 84px !important;
+  }
+}
+
+/* =========================================================
+   Public Page Mobile Navigation Drawer & Header
+   ========================================================= */
+
+.public-mobile-nav-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(4px);
+  z-index: 55;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.public-mobile-nav-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 290px;
+  max-width: 85vw;
+  background-color: var(--bg-surface);
+  box-shadow: var(--shadow-modal);
+  z-index: 60;
+  transform: translateX(100%);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  padding: 20px 18px;
+  padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+}
+
+.public-mobile-nav-backdrop.open {
+  display: block;
+  opacity: 1;
+}
+
+.public-mobile-nav-drawer.open {
+  transform: translateX(0);
+}
+
+/* Responsive Metric Card 2-col on Mobile */
+@media (max-width: 640px) {
+  .metric-grid-mobile-2col {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+  }
+
+  .metric-card-compact {
+    padding: 14px 12px !important;
+  }
+
+  .metric-card-compact .metric-value {
+    font-size: 1.45rem !important;
+  }
+}
+
+/* Smooth Horizontal Scroll Indicator for Tables */
+.table-scroll-wrapper {
+  position: relative;
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-scroll-wrapper::-webkit-scrollbar {
+  height: 6px;
+}
+
+.table-scroll-wrapper::-webkit-scrollbar-thumb {
+  background-color: var(--border-strong);
+  border-radius: 4px;
+}
+
 
 

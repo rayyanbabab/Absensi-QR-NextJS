@@ -9,6 +9,9 @@ export async function GET() {
   }
   try {
     const user = JSON.parse(session.value);
+    if (!user || user.role === "orang_tua" || user.active === false) {
+      return NextResponse.json({ user: null });
+    }
     return NextResponse.json({ user });
   } catch {
     return NextResponse.json({ user: null });

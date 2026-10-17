@@ -130,6 +130,14 @@ export default function QRScanner({
     }
   };
 
+  const flipCamera = async () => {
+    if (cameras.length <= 1) return;
+    const currentIndex = cameras.findIndex((c) => c.id === selectedCamera);
+    const nextIndex = (currentIndex + 1) % cameras.length;
+    const nextCamera = cameras[nextIndex].id;
+    await handleCameraChange(nextCamera);
+  };
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
       {/* Mode Switcher */}
@@ -137,10 +145,10 @@ export default function QRScanner({
         style={{
           display: "grid",
           gridTemplateColumns: "1fr 1fr",
-          gap: "4px",
-          padding: "4px",
+          gap: "6px",
+          padding: "5px",
           backgroundColor: "var(--bg-subtle)",
-          borderRadius: "10px",
+          borderRadius: "12px",
           border: "1px solid var(--border-app)",
         }}
       >
@@ -152,22 +160,23 @@ export default function QRScanner({
             alignItems: "center",
             justifyContent: "center",
             gap: "8px",
-            padding: "9px 14px",
-            borderRadius: "7px",
-            fontSize: "0.84rem",
-            fontWeight: mode === "masuk" ? 600 : 500,
+            padding: "10px 14px",
+            borderRadius: "9px",
+            fontSize: "0.85rem",
+            fontWeight: mode === "masuk" ? 700 : 500,
             color: mode === "masuk" ? "#ffffff" : "var(--text-muted)",
-            backgroundColor: mode === "masuk" ? "var(--brand-primary)" : "transparent",
-            boxShadow: mode === "masuk" ? "0 1px 3px rgba(15, 23, 42, 0.15)" : "none",
+            backgroundColor: mode === "masuk" ? "#0f172a" : "transparent",
+            boxShadow: mode === "masuk" ? "0 2px 6px rgba(15, 23, 42, 0.2)" : "none",
             border: "none",
             cursor: "pointer",
-            transition: "all 0.15s ease",
+            transition: "all 0.18s ease",
+            minHeight: "42px",
           }}
         >
           <span
             style={{
-              width: "7px",
-              height: "7px",
+              width: "8px",
+              height: "8px",
               borderRadius: "50%",
               backgroundColor: mode === "masuk" ? "#10b981" : "var(--text-subtle)",
             }}
@@ -183,22 +192,23 @@ export default function QRScanner({
             alignItems: "center",
             justifyContent: "center",
             gap: "8px",
-            padding: "9px 14px",
-            borderRadius: "7px",
-            fontSize: "0.84rem",
-            fontWeight: mode === "pulang" ? 600 : 500,
+            padding: "10px 14px",
+            borderRadius: "9px",
+            fontSize: "0.85rem",
+            fontWeight: mode === "pulang" ? 700 : 500,
             color: mode === "pulang" ? "#ffffff" : "var(--text-muted)",
-            backgroundColor: mode === "pulang" ? "var(--brand-primary)" : "transparent",
-            boxShadow: mode === "pulang" ? "0 1px 3px rgba(15, 23, 42, 0.15)" : "none",
+            backgroundColor: mode === "pulang" ? "#0f172a" : "transparent",
+            boxShadow: mode === "pulang" ? "0 2px 6px rgba(15, 23, 42, 0.2)" : "none",
             border: "none",
             cursor: "pointer",
-            transition: "all 0.15s ease",
+            transition: "all 0.18s ease",
+            minHeight: "42px",
           }}
         >
           <span
             style={{
-              width: "7px",
-              height: "7px",
+              width: "8px",
+              height: "8px",
               borderRadius: "50%",
               backgroundColor: mode === "pulang" ? "#f59e0b" : "var(--text-subtle)",
             }}
@@ -207,22 +217,35 @@ export default function QRScanner({
         </button>
       </div>
 
-      {/* Camera Selection */}
+      {/* Camera Selection & Flip Button */}
       {cameras.length > 1 && (
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <Camera size={15} style={{ color: "var(--text-muted)" }} />
-          <select
-            value={selectedCamera}
-            onChange={(e) => handleCameraChange(e.target.value)}
-            className="form-select"
-            style={{ fontSize: "0.8rem", padding: "5px 10px", height: "34px" }}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "6px", flex: 1, minWidth: 0 }}>
+            <Camera size={15} style={{ color: "var(--text-muted)", flexShrink: 0 }} />
+            <select
+              value={selectedCamera}
+              onChange={(e) => handleCameraChange(e.target.value)}
+              className="form-select"
+              style={{ fontSize: "0.8rem", padding: "6px 10px", height: "36px", minWidth: 0 }}
+            >
+              {cameras.map((c, i) => (
+                <option key={c.id} value={c.id}>
+                  {c.label || `Kamera ${i + 1}`}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <button
+            type="button"
+            onClick={flipCamera}
+            className="btn btn-secondary btn-sm"
+            style={{ height: "36px", padding: "0 10px", flexShrink: 0, gap: "5px" }}
+            title="Ganti ke kamera depan / belakang"
           >
-            {cameras.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.label}
-              </option>
-            ))}
-          </select>
+            <ArrowRightLeft size={13} />
+            <span style={{ fontSize: "0.76rem" }}>Ganti Lensa</span>
+          </button>
         </div>
       )}
 
@@ -235,9 +258,17 @@ export default function QRScanner({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+          borderRadius: "var(--radius-lg, 14px)",
+          border: "1px solid var(--border-app)",
+          boxShadow: "var(--shadow-card)",
+          width: "100%",
+          maxWidth: "460px",
         }}
       >
         <div className="scanner-target-box" />
+
+        {/* Dynamic laser scan beam */}
+        {!cameraError && !isProcessing && <div className="scanner-laser-beam" />}
 
         {/* HTML5 QR Video Element */}
         <div id="qr-reader-container" style={{ width: "100%", height: "100%" }} />
@@ -284,8 +315,8 @@ export default function QRScanner({
               backdropFilter: "blur(2px)",
             }}
           >
-            <RefreshCw size={26} className="animate-spin" />
-            <span style={{ fontSize: "0.82rem", fontWeight: 600, letterSpacing: "0.02em" }}>
+            <RefreshCw size={28} className="animate-spin" />
+            <span style={{ fontSize: "0.84rem", fontWeight: 700, letterSpacing: "0.02em" }}>
               Memvalidasi data presensi...
             </span>
           </div>
@@ -300,13 +331,13 @@ export default function QRScanner({
           value={manualCode}
           onChange={(e) => setManualCode(e.target.value)}
           className="form-input"
-          style={{ fontSize: "0.82rem", height: "36px" }}
+          style={{ fontSize: "0.88rem", height: "42px", paddingLeft: "14px" }}
         />
         <button
           type="submit"
-          className="btn btn-secondary"
-          disabled={isProcessing}
-          style={{ height: "36px", fontSize: "0.82rem", fontWeight: 600, flexShrink: 0 }}
+          className="btn btn-primary"
+          disabled={isProcessing || !manualCode.trim()}
+          style={{ height: "42px", padding: "0 18px", fontSize: "0.85rem", fontWeight: 700, flexShrink: 0 }}
         >
           Kirim
         </button>

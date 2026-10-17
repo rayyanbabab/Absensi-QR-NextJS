@@ -1,142 +1,153 @@
-# Absensi QR - Next.js Fullstack Edition (v2.0)
+﻿# 📷 Sistem Presensi Sekolah Berbasis QR Code (Next.js Edition)
 
-Aplikasi Presensi Siswa dan Guru berbasis pemindai **QR Code** modern yang telah dimigrasikan secara penuh dari CodeIgniter 4 ke **Next.js 16 (App Router + TypeScript)** dengan integrasi **PostgreSQL / Supabase** dan **Prisma ORM**.
+Aplikasi sistem presensi dan absensi pintar untuk **Siswa** dan **Guru** berbasis pemindai **QR Code** real-time dengan integrasi **Portal Orang Tua**, **Notifikasi WhatsApp Broadcast**, **Prisma ORM**, dan **PostgreSQL / Supabase**.
 
----
-
-## 🚀 Fitur Unggulan
-
-1. **Stasiun Pemindai QR Kamera Real-time (`/`)**
-   - Pemindai otomatis menggunakan webcam/kamera laptop/HP (`html5-qrcode`).
-   - Efek suara bip sintetis (Web Audio API, tanpa dependensi file eksternal).
-   - Saklar mode kehadiran: **Absen Masuk** dan **Absen Pulang**.
-   - Kartu konfirmasi kehadiran instan (menampilkan Nama, NIS/NUPTK, Kelas, dan Status Tepat Waktu).
-   - Live ticker daftar kehadiran hari ini.
-
-2. **Portal Admin & Dashboard (`/admin`)**
-   - Ringkasan metrik: Total Siswa, Total Guru, Total Kelas, dan Siswa Hadir Hari Ini.
-   - Grafik tren kehadiran 7 hari terakhir (komparasi Siswa & Guru).
-   - Breakdown status kehadiran: Hadir, Sakit, Izin, Alfa/Belum Absen.
-
-3. **Manajemen Data Siswa (`/admin/siswa`)**
-   - CRUD lengkap data siswa.
-   - Filter cepat berdasarkan Kelas dan Jurusan.
-   - Pencarian instan berdasarkan NIS atau Nama.
-   - Modal preview kode QR siswa & tombol unduh file gambar QR PNG.
-   - Ekspor data siswa ke file **Excel (`.xlsx`)**.
-
-4. **Manajemen Data Guru (`/admin/guru`)**
-   - CRUD lengkap data guru & tenaga pendidik.
-   - Modal preview kode QR guru & unduh file gambar QR.
-   - Ekspor data guru ke file **Excel (`.xlsx`)**.
-
-5. **Manajemen Kelas & Jurusan (`/admin/kelas`)**
-   - Pengaturan rombongan belajar (Kelas X, XI, XII).
-   - Relasi otomatis ke program keahlian / jurusan (RPL, TKJ, AKL, OTKP).
-
-6. **Rekapitulasi Presensi Siswa & Guru (`/admin/absen-siswa` & `/admin/absen-guru`)**
-   - Filter tanggal harian dan filter kelas.
-   - Pencarian siswa / guru.
-   - Ekspor laporan ke **Excel (`.xlsx`)** dan cetak **PDF (`jspdf`)**.
-
-7. **Cetak Kartu QR Pelajar & Guru (`/admin/generate-qr`)**
-   - Desain resmi kartu pelajar & presensi guru dengan kop sekolah dan QR code aktif.
-   - Fitur **Cetak Langsung (Print Preview)** dengan format tata letak cetak kertas rapi (`@media print`).
-
-8. **Laporan Absensi Periodik (`/admin/laporan`)**
-   - Rekapitulasi absensi berdasarkan rentang tanggal mulai s/d selesai.
-   - Kalkulasi otomatis persentase kehadiran (%).
-   - Cetak dokumen resmi format PDF lengkap dengan tempat tanda tangan Kepala Sekolah.
-
-9. **Pengaturan Umum (`/admin/settings`)**
-   - Konfigurasi nama sekolah, tahun ajaran, teks hak cipta (copyright).
-   - Aturan jam masuk (batas tepat waktu) dan jam pulang sekolah.
-
-10. **Data Petugas & Akun (`/admin/petugas`)**
-    - Manajemen peran pengguna: **Super Administrator** dan **Petugas Piket**.
+[![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19-blue?style=flat-square&logo=react)](https://react.dev/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
+[![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748?style=flat-square&logo=prisma)](https://www.prisma.io/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
+[![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 
 ---
 
-## 🛠️ Panduan Menjalankan Aplikasi
+## 📌 Ringkasan Proyek
 
-### 1. Masuk ke direktori Next.js
-```bash
-cd "c:\Users\Rayyan af\OneDrive\Desktop\MyProject\absensi\next-app"
+Aplikasi ini dirancang untuk menyederhanakan, mempercepat, dan meningkatkan akurasi pencatatan kehadiran di institusi sekolah (SD/SMP/SMA/SMK). Dilengkapi fitur pemindaian kamera instan tanpa hardware khusus (cukup webcam laptop/kamera HP), pelaporan kehadiran harian/bulanan otomatis, serta dashboard monitoring khusus untuk orang tua siswa.
+
+---
+
+## ✨ Fitur Unggulan
+
+### 1. 🔍 Stasiun Pemindai QR Kamera Real-time (`/` & `/scan`)
+- **Pindai Cepat**: Menggunakan modul `html5-qrcode` yang responsif membaca QR Code siswa dan guru.
+- **Efek Suara Sintetis (Audio Feedback)**: Suara bip Web Audio API saat kartu QR berhasil terpindai.
+- **Mode Fleksibel**: Beralih mudah antara mode **Absen Masuk** dan **Absen Pulang**.
+- **Kartu Konfirmasi Instan**: Informasi nama, NIS/NUPTK, kelas/jabatan, jam kehadiran, dan status keterlambatan langsung muncul di layar.
+- **Live Feed Kehadiran**: Ticker tabel data kehadiran terkini secara real-time.
+
+### 2. 👨‍👩‍👧 Portal Orang Tua (`/ortu`)
+- **Login Khusus Wali Murid**: Autentikasi menggunakan NIS anak atau nomor telepon terdaftar.
+- **Pantau Kehadiran Real-time**: Orang tua dapat melihat riwayat kehadiran, jam masuk, jam pulang, dan status (Hadir, Sakit, Izin, Terlambat).
+- **Pengaitan Multi-Anak**: Mendukung linking beberapa anak dalam satu akun orang tua.
+
+### 3. 📝 Formulir & Manajemen Izin (`/izin` & `/admin/izin`)
+- **Pengajuan Izin Mandiri**: Pengajuan izin tidak masuk sekolah (Sakit, Keperluan Keluarga, Dispensasi) lengkap dengan bukti pendukung.
+- **Approval Admin/Wali Kelas**: Verifikasi dan persetujuan status izin langsung dari dashboard admin.
+
+### 4. 🔎 Cek Presensi Mandiri (`/cek-presensi`)
+- Fitur pencarian cepat riwayat kehadiran siswa/guru tanpa perlu masuk ke dashboard utama.
+
+### 5. 🛡️ Portal Administrator & Petugas Piket (`/admin`)
+- **Dashboard Statistik**: Metrik total siswa, total guru, persentase kehadiran hari ini, dan diagram tren 7 hari.
+- **Manajemen Siswa (`/admin/siswa`)**: Tambah, edit, hapus, import massal via **Excel (`.xlsx`)**, serta preview & unduh QR Code siswa.
+- **Manajemen Guru (`/admin/guru`)**: Manajemen data pendidik & cetak QR Code guru.
+- **Manajemen Kelas & Jurusan (`/admin/kelas`)**: Pengelompokan rombongan belajar dan program keahlian.
+- **Generator QR Code Batch (`/admin/generate-qr`)**: Cetak lembaran kartu QR Code siswa/guru sekaligus siap print.
+- **Laporan & Ekspor (`/admin/laporan`)**: Rekap kehadiran harian/bulanan dengan filter kelas/tanggal, ekspor ke **Excel (`.xlsx`)** dan **PDF (jsPDF AutoTable)**.
+- **Broadcast WhatsApp (`/admin/broadcast`)**: Pengiriman notifikasi kehadiran/ketidakhadiran siswa ke nomor WhatsApp orang tua secara terintegrasi.
+- **Pengaturan Jam Presensi (`/admin/settings`)**: Konfigurasi batas jam masuk, toleransi terlambat, dan jam pulang.
+
+---
+
+## 🛠️ Tech Stack
+
+| Komponen | Deskripsi |
+| --- | --- |
+| **Framework** | [Next.js](https://nextjs.org/) (App Router, Server Actions, Route Handlers) |
+| **Bahasa** | [TypeScript](https://www.typescriptlang.org/) |
+| **Database & ORM** | [Prisma ORM](https://www.prisma.io/) dengan [PostgreSQL / Supabase](https://supabase.com/) |
+| **Styling** | [Tailwind CSS v4](https://tailwindcss.com/), Radix UI Primitives, Lucide Icons |
+| **Scanner QR** | `html5-qrcode` & `qrcode` |
+| **Export Engine** | `xlsx` (Excel) & `jspdf` + `jspdf-autotable` (PDF) |
+| **Autentikasi** | Session-based / JWT Auth dengan `bcryptjs` |
+
+---
+
+## 📁 Struktur Direktori
+
+```text
+absensi-next-app/
+├── prisma/
+│   └── schema.prisma         # Skema database Prisma (PostgreSQL / Supabase)
+├── public/                   # Aset gambar, suara, dan logo sekolah
+├── src/
+│   ├── app/
+│   │   ├── admin/            # Halaman admin (siswa, guru, kelas, laporan, broadcast)
+│   │   ├── api/              # Endpoint API backend (scan, auth, presensi, izin, settings)
+│   │   ├── cek-presensi/     # Halaman pengecekan riwayat presensi mandiri
+│   │   ├── izin/             # Halaman pengajuan izin & sakit
+│   │   ├── login/            # Halaman masuk petugas / admin
+│   │   ├── ortu/             # Portal login dan dashboard orang tua
+│   │   ├── scan/             # Halaman pemindai QR mandiri
+│   │   ├── globals.css       # Tailwind v4 tema dark glassmorphism
+│   │   ├── layout.tsx        # Root layout aplikasi
+│   │   └── page.tsx          # Halaman utama stasiun pemindai QR
+│   ├── components/
+│   │   ├── QRScanner.tsx     # Komponen pemindai kamera & audio feedback
+│   │   └── ui/               # Komponen antarmuka (Button, Dialog, Card, Tabs, dll.)
+│   ├── lib/                  # Database client, auth helper, dan utility
+│   └── middleware.ts         # Middleware proteksi rute admin & ortu
+├── .env.example              # Contoh variabel lingkungan
+├── package.json
+└── README.md
 ```
 
-### 2. Jalankan Server Development
+---
+
+## 🚀 Panduan Memulai (Getting Started)
+
+### 1. Prasyarat
+- **Node.js** versi 18.18 atau lebih baru
+- Database **PostgreSQL** (bisa menggunakan [Supabase](https://supabase.com), Neon, atau PostgreSQL lokal)
+
+### 2. Kloning Repositori
+```bash
+git clone https://github.com/rayyanbabab/Absensi-QR-NextJS.git
+cd Absensi-QR-NextJS
+```
+
+### 3. Instalasi Dependensi
+```bash
+npm install
+```
+
+### 4. Konfigurasi Environment Variable
+Salin file `.env.example` menjadi `.env`:
+```bash
+cp .env.example .env
+```
+
+Sesuaikan konfigurasi database pada `.env`:
+```env
+DATABASE_URL="postgresql://postgres:[PASSWORD]@[HOST]:[PORT]/[DATABASE]"
+JWT_SECRET="your-secret-key-here"
+```
+
+### 5. Sinkronisasi Database (Prisma)
+Jalankan migrasi skema tabel ke database:
+```bash
+npx prisma db push
+npx prisma generate
+```
+
+### 6. Menjalankan Server Pengembangan
 ```bash
 npm run dev
 ```
-Aplikasi langsung dapat diakses di browser:
-- **Kamera Scanner**: [http://localhost:3000](http://localhost:3000)
-- **Portal Admin**: [http://localhost:3000/admin](http://localhost:3000/admin)
-- **Login Admin**: [http://localhost:3000/login](http://localhost:3000/login)
-  - **Username**: `superadmin`
-  - **Password**: `superadmin`
+Akses aplikasi melalui browser di: `http://localhost:3000`
 
 ---
 
-## 🗄️ Konfigurasi Database (PostgreSQL / Supabase)
+## 📦 Build Produksi
 
-Aplikasi ini sudah dilengkapi sistem **dual-layer storage**:
-- **Secara otomatis**: Jika `DATABASE_URL` belum dihubungkan ke Supabase, sistem menggunakan database file lokal (`data/local-db.json`) sehingga Anda dapat langsung menjalankan dan menguji aplikasi secara offline tanpa setup rumit.
-- **Untuk menghubungkan ke PostgreSQL / Supabase**:
-  1. Buka file `.env` di dalam folder `next-app`.
-  2. Masukkan connection string Supabase Anda pada variabel `DATABASE_URL`:
-     ```env
-     DATABASE_URL="postgresql://postgres.[ref]:[password]@aws-0-[region].pooler.supabase.com:6543/postgres?pgbouncer=true"
-     ```
-  3. Sinkronkan skema tabel ke database Supabase Anda:
-     ```bash
-     npx prisma db push
-     ```
-
-## 🎨 Integrasi UI: shadcn/ui & Tailwind CSS v4
-
-Aplikasi ini telah terintegrasi dengan standar **shadcn/ui** dan **Tailwind CSS v4**:
-- Konfigurasi `components.json` siap pakai untuk menambah komponen shadcn/ui kapan saja.
-- Library primitif **Radix UI** (`@radix-ui/react-dialog`, `@radix-ui/react-slot`, `@radix-ui/react-tabs`, `@radix-ui/react-dropdown-menu`).
-- Komponen bawaan yang tersedia di `src/components/ui/`:
-  - `Button` (`src/components/ui/button.tsx`)
-  - `Card` (`src/components/ui/card.tsx`)
-  - `Badge` (`src/components/ui/badge.tsx`)
-  - `Dialog / Modal` (`src/components/ui/dialog.tsx`)
-  - `Table` (`src/components/ui/table.tsx`)
-  - `Tabs` (`src/components/ui/tabs.tsx`)
-  - `Input` (`src/components/ui/input.tsx`)
-
-### Menambahkan Komponen Tambahan dari [awesome-shadcn-ui](https://github.com/birobirobiro/awesome-shadcn-ui)
-Anda dapat memasang komponen atau blok UI populer (seperti Aceternity UI, Magic UI, Shadcnblocks) dengan menjalankan perintah:
+Untuk membangun build versi produksi:
 ```bash
-npx shadcn@latest add [nama-komponen]
+npm run build
+npm run start
 ```
 
 ---
 
-## 📁 Struktur Folder `next-app`
-
-```
-next-app/
-├── components.json           # Konfigurasi resmi shadcn/ui
-├── postcss.config.mjs        # Konfigurasi PostCSS Tailwind CSS v4
-├── prisma/
-│   └── schema.prisma         # Skema database Prisma (PostgreSQL / Supabase)
-├── src/
-│   ├── app/
-│   │   ├── api/              # Rute Backend API (Scan, Auth, Siswa, Guru, dll.)
-│   │   ├── admin/            # Halaman Dashboard, Siswa, Guru, QR, Laporan
-│   │   ├── login/            # Halaman Autentikasi Petugas
-│   │   ├── globals.css       # Tailwind v4 + Desain Sistem Dark Glassmorphism
-│   │   ├── layout.tsx        # Root HTML Layout
-│   │   └── page.tsx          # Halaman Utama Pemindai QR
-│   ├── components/
-│   │   ├── ui/               # Komponen resmi shadcn/ui (Button, Card, Dialog, Table, Tabs, Badge, Input)
-│   │   └── QRScanner.tsx     # Komponen Web Scanner Kamera & Audio Beep
-│   └── lib/
-│       ├── db.ts             # Service Database (Prisma + Local Storage Fallback)
-│       ├── prisma.ts         # Singleton Client Prisma
-│       ├── types.ts          # Definisi TypeScript Interface
-│       └── utils.ts          # Helper utility cn() (clsx + twMerge)
-└── package.json
-```
+## 📄 Lisensi
+Didistribusikan di bawah lisensi MIT. Silakan digunakan dan dikembangkan untuk kemajuan digitalisasi sekolah.
